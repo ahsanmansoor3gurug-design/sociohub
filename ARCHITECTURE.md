@@ -11,21 +11,23 @@
 └─────────────────────────────────────────────────────────────┘
                               ▼
         ┌───────────────────────────────────────────┐
-        │          FIREBASE BACKEND                  │
+        │          SUPABASE BACKEND                  │
         ├───────────────────────────────────────────┤
-        │ • Firebase Auth (Phone OTP)                │
-        │ • Cloud Firestore (Real-time Database)     │
-        │ • Firebase Storage (Images)                │
-        │ • Firebase Cloud Messaging (Push)          │
-        │ • Firebase Hosting (Admin Web Panel)       │
+        │ • Authentication (Email Verification) ✅  │
+        │ • PostgreSQL Database (Real-time)         │
+        │ • Storage (Images)                        │
+        │ • Real-time Subscriptions                 │
+        │ • Admin API                               │
         └───────────────────────────────────────────┘
                               ▼
         ┌───────────────────────────────────────────┐
         │          EXTERNAL SERVICES                 │
         ├───────────────────────────────────────────┤
-        │ • Google Maps API (Location)               │
-        │ • Geolocator Plugin (Device Location)      │
+        │ • Google Maps API (Location) - Optional    │
+        │ • Email Service (Built-in)                │
         └───────────────────────────────────────────┘
+
+                  🎉 COST: $0/month for MVP!
 ```
 
 ---
@@ -36,6 +38,12 @@
 START
   ▼
 SPLASH SCREEN (3 seconds)
+  ▼
+LOGIN / SIGNUP SCREEN (Email Auth)
+  ├─ Email signup with password
+  ├─ Automatic verification email sent
+  ├─ User clicks email link to verify
+  └─ Account ready to use ✅ (FREE!)
   ▼
 SELECT CITY
   ├─ Search by name
@@ -50,9 +58,9 @@ SELECT SOCIETY
   ▼
 ADD SOCIETY (Optional)
   ├─ Enter society name
-  ├─ Check duplicates
-  │  ├─ Exact match → Block
-  │  └─ Similar match → Suggest
+  ├─ Check duplicates (Database UNIQUE constraint)
+  │  ├─ Exact match → Block (Database enforces)
+  │  └─ Similar match → Suggest (Real-time search)
   ├─ Enter area/location
   ├─ Click "Submit for Approval"
   └─ Return to society list
@@ -62,7 +70,7 @@ COMMUNITY DASHBOARD
   ├─ Restaurants
   ├─ Community Services
   ├─ Emergency Contacts
-  ├─ Society Map
+  ├─ Society Map (Optional)
   └─ Announcements
 ```
 
@@ -92,10 +100,12 @@ sociohub/
 │   │   └── service_model.dart         - [TODO] Service structure
 │   │
 │   ├── services/                      [BACKEND SERVICES]
-│   │   ├── auth_service.dart          - [TODO] Firebase Auth
-│   │   ├── firestore_service.dart     - [TODO] Firestore queries
-│   │   ├── location_service.dart      - [TODO] Google Maps/Location
-│   │   └── notification_service.dart  - [TODO] Firebase Messaging
+│   │   ├── auth_service.dart          - Email signup/signin (Supabase) ✅
+│   │   ├── society_service.dart       - Add/search societies (Supabase) ✅
+│   │   ├── city_service.dart          - Get cities from database ✅
+│   │   ├── masjid_service.dart        - [TODO] Masjid operations
+│   │   ├── restaurant_service.dart    - [TODO] Restaurant operations
+│   │   └── service_service.dart       - [TODO] Service operations
 │   │
 │   ├── providers/                     [STATE MANAGEMENT]
 │   │   ├── auth_provider.dart         - [TODO] Login state
@@ -138,10 +148,13 @@ sociohub/
 - [x] Duplicate prevention (exact match + suggestions)
 - [x] Home dashboard with feature cards
 
-### ⏳ PHASE 2 (Firebase Integration)
-- [ ] Firebase project setup
-- [ ] Phone OTP authentication
-- [ ] Real-time city/society data from Firestore
+### ⏳ PHASE 2 (Supabase & Email Auth)
+- [x] Supabase project setup
+- [x] Email authentication (FREE!) ✅
+- [x] Database schema designed
+- [x] Auth service created
+- [x] Duplicate prevention with UNIQUE constraints
+- [ ] Real-time city/society data from database
 - [ ] User profile creation
 - [ ] Role assignment (resident/imam/business owner)
 
@@ -155,9 +168,9 @@ sociohub/
 ### 🌟 PHASE 4 (Advanced)
 - [ ] Admin approval panel
 - [ ] Analytics dashboard
-- [ ] Push notifications
-- [ ] Google Maps integration
-- [ ] Real-time chat
+- [ ] Push notifications (optional)
+- [ ] Google Maps integration (optional)
+- [ ] Real-time chat (optional)
 
 ---
 
@@ -236,104 +249,110 @@ sociohub/
 
 ---
 
-## 🗄️ Database Schema (Firestore)
+## 🗄️ Database Schema (Supabase PostgreSQL)
 
-### Collection: `users`
-```javascript
+### Table: `users`
+```sql
 {
-  userId: "user123",
-  name: "Ahmed Khan",
-  phone: "+923001234567",
-  role: "resident",      // resident, imam, business_owner, service_provider, admin
-  cityId: "karachi",
-  societyId: "dha_phase6",
-  profileImage: "url",
-  joinedAt: "2024-01-15",
-  status: "active"       // active, inactive, banned
+  id: UUID PRIMARY KEY,
+  email: VARCHAR UNIQUE,              -- One email = One account!
+  name: VARCHAR,
+  role: VARCHAR,                      -- resident, imam, business_owner, service_provider, admin
+  city_id: UUID FK,
+  society_id: UUID,
+  email_verified: BOOLEAN,
+  created_at: TIMESTAMP
 }
 ```
 
-### Collection: `cities`
-```javascript
+### Table: `cities`
+```sql
 {
-  cityId: "karachi",
-  cityName: "Karachi",
-  latitude: 24.8607,
-  longitude: 67.0011,
-  societiesCount: 150,
-  createdAt: "2024-01-01"
+  id: UUID PRIMARY KEY,
+  name: VARCHAR UNIQUE,
+  latitude: DECIMAL,
+  longitude: DECIMAL,
+  created_at: TIMESTAMP
 }
 ```
 
-### Collection: `societies`
-```javascript
+### Table: `societies`
+```sql
 {
-  societyId: "dha_phase6",
-  cityId: "karachi",
-  societyName: "DHA Phase 6",
-  area: "Defence",
-  latitude: 24.8500,
-  longitude: 67.0200,
-  createdBy: "user123",
-  createdAt: "2024-01-15",
-  status: "approved",    // pending, approved, rejected
-  membersCount: 450
+  id: UUID PRIMARY KEY,
+  city_id: UUID FK,
+  name: VARCHAR,
+  area: VARCHAR,
+  latitude: DECIMAL,
+  longitude: DECIMAL,
+  created_by: UUID FK,
+  status: VARCHAR,                    -- pending, approved, rejected
+  created_at: TIMESTAMP,
+  UNIQUE(city_id, name)              -- Prevents duplicate societies!
 }
 ```
 
-### Collection: `masjids`
-```javascript
+### Table: `masjids`
+```sql
 {
-  masjidId: "masjid_001",
-  societyId: "dha_phase6",
-  imamId: "imam_123",
-  masjidName: "Al-Noor Masjid",
-  location: "Block A, Street 2",
-  latitude: 24.8510,
-  longitude: 67.0210,
-  prayerTimes: {
-    fajr: "05:30",
-    zuhr: "12:30",
-    asr: "15:45",
-    maghrib: "18:15",
-    isha: "19:45",
-    jummah: "13:00"
-  },
-  phone: "+923001111111",
-  status: "approved"
+  id: UUID PRIMARY KEY,
+  society_id: UUID FK,
+  imam_id: UUID FK,
+  name: VARCHAR,
+  location: VARCHAR,
+  latitude: DECIMAL,
+  longitude: DECIMAL,
+  fajr: TIME,
+  zuhr: TIME,
+  asr: TIME,
+  maghrib: TIME,
+  isha: TIME,
+  jummah: TIME,
+  phone: VARCHAR,
+  status: VARCHAR,                    -- pending, approved, rejected
+  created_at: TIMESTAMP
 }
 ```
 
-### Collection: `restaurants`
-```javascript
+### Table: `restaurants`
+```sql
 {
-  restaurantId: "rest_001",
-  societyId: "dha_phase6",
-  ownerId: "user456",
-  name: "Karahi King",
-  category: "Desi Food",  // Desi, Chinese, Fast Food, etc
-  phone: "+923002222222",
-  address: "Block C, Road 5",
-  deliveryAvailable: true,
-  latitude: 24.8520,
-  longitude: 67.0220,
-  status: "approved"
+  id: UUID PRIMARY KEY,
+  society_id: UUID FK,
+  owner_id: UUID FK,
+  name: VARCHAR,
+  category: VARCHAR,                  -- Desi, Chinese, Fast Food, etc
+  phone: VARCHAR,
+  address: VARCHAR,
+  delivery_available: BOOLEAN,
+  latitude: DECIMAL,
+  longitude: DECIMAL,
+  status: VARCHAR,                    -- pending, approved, rejected
+  created_at: TIMESTAMP
 }
 ```
 
-### Collection: `services`
-```javascript
+### Table: `services`
+```sql
 {
-  serviceId: "serv_001",
-  societyId: "dha_phase6",
-  providerId: "user789",
-  serviceType: "plumber",  // plumber, electrician, carpenter, etc
-  name: "Ali's Plumbing",
-  phone: "+923003333333",
-  experience: "10 years",
-  status: "approved"
+  id: UUID PRIMARY KEY,
+  society_id: UUID FK,
+  provider_id: UUID FK,
+  service_type: VARCHAR,             -- plumber, electrician, carpenter, etc
+  name: VARCHAR,
+  phone: VARCHAR,
+  experience: VARCHAR,
+  status: VARCHAR,                    -- pending, approved, rejected
+  created_at: TIMESTAMP
 }
 ```
+
+### Key Features
+✅ **Duplicate Prevention**: UNIQUE(city_id, name) on societies
+✅ **Referential Integrity**: Foreign keys enforce relationships
+✅ **Email Authentication**: UNIQUE email prevents multiple accounts
+✅ **Automatic Timestamps**: created_at auto-populated
+✅ **Cost**: $0/month for free tier ✅
 
 ### Collection: `emergencyContacts`
 ```javascript
@@ -454,4 +473,9 @@ Your SocioHub project is structured like a real startup app. The next step is:
 5. Launch to Play Store
 
 **Good luck! 🚀**
+
+
+
+
+
 

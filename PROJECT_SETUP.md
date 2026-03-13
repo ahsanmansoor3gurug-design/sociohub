@@ -36,7 +36,7 @@ lib/
 ### Prerequisites
 - Flutter SDK (3.0.0 or higher)
 - Android Studio with Flutter plugin
-- Firebase Account
+- Supabase Account (FREE!)
 
 ### Installation
 
@@ -50,34 +50,149 @@ lib/
    flutter pub get
    ```
 
-3. **Run the app**
+3. **Set up Supabase**
+   - Create account at supabase.com
+   - Create new project
+   - Copy Project URL and API Key
+   - Follow SUPABASE_IMPLEMENTATION_GUIDE.md
+
+4. **Run the app**
    ```bash
-   flutter run
+   flutter run -d chrome
    ```
 
 ### First Run
 The app will show:
 1. Splash Screen (3 seconds)
-2. City Selection Screen
-3. Society List Screen
-4. Community Dashboard
+2. Login/Signup Screen (email)
+3. City Selection Screen
+4. Society List Screen
+5. Community Dashboard
 
-## 📊 Data Structure (Firebase Firestore)
+## 📊 Data Structure (Supabase PostgreSQL)
 
-### Collections
+## 📊 Data Structure (Supabase PostgreSQL)
+
+### Tables
 
 #### cities
-```json
-{
-  "id": "karachi",
-  "name": "Karachi"
-}
+```sql
+CREATE TABLE cities (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
+  latitude DECIMAL(10, 8),
+  longitude DECIMAL(11, 8),
+  created_at TIMESTAMP
+);
+```
+
+#### users
+```sql
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email VARCHAR NOT NULL UNIQUE,  -- One email = One account
+  name VARCHAR NOT NULL,
+  role VARCHAR DEFAULT 'resident',
+  city_id UUID REFERENCES cities(id),
+  email_verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP
+);
 ```
 
 #### societies
-```json
-{
-  "societyId": "dha_phase6",
+```sql
+CREATE TABLE societies (
+  id UUID PRIMARY KEY,
+  city_id UUID NOT NULL REFERENCES cities(id),
+  name VARCHAR NOT NULL,
+  area VARCHAR,
+  created_by UUID REFERENCES users(id),
+  status VARCHAR DEFAULT 'pending',
+  created_at TIMESTAMP,
+  UNIQUE(city_id, name)  -- Prevents duplicate societies!
+);
+```
+
+#### masjids
+```sql
+CREATE TABLE masjids (
+  id UUID PRIMARY KEY,
+  society_id UUID NOT NULL REFERENCES societies(id),
+  imam_id UUID REFERENCES users(id),
+  name VARCHAR NOT NULL,
+  fajr TIME, zuhr TIME, asr TIME, maghrib TIME, isha TIME,
+  status VARCHAR DEFAULT 'pending',
+  created_at TIMESTAMP
+);
+```
+
+#### restaurants
+```sql
+CREATE TABLE restaurants (
+  id UUID PRIMARY KEY,
+  society_id UUID NOT NULL REFERENCES societies(id),
+  owner_id UUID REFERENCES users(id),
+  name VARCHAR NOT NULL,
+  category VARCHAR,
+  delivery_available BOOLEAN,
+  status VARCHAR DEFAULT 'pending',
+  created_at TIMESTAMP
+);
+```
+
+#### services
+```sql
+CREATE TABLE services (
+  id UUID PRIMARY KEY,
+  society_id UUID NOT NULL REFERENCES societies(id),
+  provider_id UUID REFERENCES users(id),
+  service_type VARCHAR,
+  name VARCHAR NOT NULL,
+  status VARCHAR DEFAULT 'pending',
+  created_at TIMESTAMP
+);
+```
+
+## 🔐 Authentication (Email Verification)
+
+### How It Works
+1. **User Signup** - Email + Password
+   ```dart
+   await supabase.auth.signUpWithPassword(
+     email: 'user@gmail.com',
+     password: 'password',
+   );
+   ```
+
+2. **Automatic Verification Email** - Supabase sends email
+   ```
+   Click link → Email verified
+   Cost: $0 ✅
+   ```
+
+3. **Account Ready** - User can login
+   ```dart
+   await supabase.auth.signInWithPassword(
+     email: 'user@gmail.com',
+     password: 'password',
+   );
+   ```
+
+### Duplicate Prevention
+- Email is UNIQUE in users table
+- One email = One account (enforced by database)
+- Cannot create multiple accounts with same email
+- Same applies to societies within a city
+- UNIQUE(city_id, name) prevents duplicate societies
+
+## 💰 Cost Structure
+
+| Component | Cost | Notes |
+|-----------|------|-------|
+| **Supabase Database** | $0-25/mo | Free tier for MVP |
+| **Email Auth** | $0/mo | Built-in, completely free |
+| **Email Sending** | $0/mo | Automatic via Supabase |
+| **Total MVP Cost** | **$0/month** | ✅ Completely FREE |
   "cityId": "karachi",
   "societyName": "DHA Phase 6",
   "area": "Defence",
@@ -200,4 +315,6 @@ For issues or questions, contact the development team.
 ---
 
 **SocioHub** - Connecting Communities, One Society at a Time 🏘️
+
+
 

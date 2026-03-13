@@ -60,40 +60,85 @@
 
 ---
 
-## 🔧 Phase 2: Firebase Integration - PENDING ⏳
+## 🔧 Phase 2: Supabase & Email Auth Setup - PENDING ⏳
 
-### Setup Tasks
-- [ ] Create Firebase project
-- [ ] Enable Firebase Authentication
-- [ ] Configure Firestore
-- [ ] Set up Firebase Storage
-- [ ] Configure Cloud Messaging
-- [ ] Download google-services.json
+### Supabase Setup Tasks
+- [ ] Create Supabase account (free)
+- [ ] Create new Supabase project
+- [ ] Get Project URL and API Key
+- [ ] Save credentials for Flutter
 
-### Models to Create
-- [ ] `user_model.dart` - User profile structure
+### Database Creation Tasks
+- [ ] Create cities table
+- [ ] Create users table (with email UNIQUE)
+- [ ] Create societies table (with email FK, UNIQUE constraint)
+- [ ] Create masjids table
+- [ ] Create restaurants table
+- [ ] Create services table
+- [ ] Create emergency_contacts table
+- [ ] Create announcements table
+- [ ] Add database indexes for performance
+- [ ] Populate cities with data (10 major cities)
+
+### Email Authentication Setup ✅ FREE!
+- [ ] Enable email auth in Supabase (automatic)
+- [ ] Configure email templates (optional)
+- [ ] Test email verification flow
+- [ ] Verify UNIQUE(email) prevents duplicates
+- [ ] Test signup with email
+- [ ] Test login with email
+- [ ] Cost: $0/month ✅
+
+### Flutter Integration Tasks
+- [ ] Add `supabase_flutter` dependency
+- [ ] Initialize Supabase in main.dart
+- [ ] Create `auth_service.dart` for email auth
+- [ ] Create `society_service.dart` for database ops
+- [ ] Create `city_service.dart` for city queries
+- [ ] Update Splash screen with auth check
+- [ ] Update City screen to load from database
+- [ ] Update Society screen with real data
+- [ ] Update Add Society with email-based creation
+
+### Models to Create/Update
+- [ ] `user_model.dart` - User profile (email-based)
 - [ ] `masjid_model.dart` - Masjid data structure
-- [ ] `restaurant_model.dart` - Restaurant data structure
-- [ ] `service_model.dart` - Service data structure
-- [ ] `emergency_model.dart` - Emergency contact structure
+- [ ] `restaurant_model.dart` - Restaurant data
+- [ ] `service_model.dart` - Service data
+- [ ] `emergency_model.dart` - Emergency contacts
 
 ### Services to Implement
-- [ ] `auth_service.dart` - Firebase Authentication logic
-- [ ] `firestore_service.dart` - Firestore database operations
-- [ ] `location_service.dart` - Google Maps integration
-- [ ] `notification_service.dart` - Push notifications
+- [ ] `auth_service.dart` - Email signup/signin/signout
+- [ ] `society_service.dart` - Add/search/list societies
+- [ ] `city_service.dart` - Get cities from database
+- [ ] `masjid_service.dart` - Masjid operations
+- [ ] `restaurant_service.dart` - Restaurant operations
+- [ ] `service_service.dart` - Service operations
 
-### Providers to Implement
-- [ ] `auth_provider.dart` - Login/auth state
-- [ ] `city_provider.dart` - City data state
-- [ ] `society_provider.dart` - Society data state
+### Providers (State Management)
+- [ ] `auth_provider.dart` - Email auth state
+- [ ] `city_provider.dart` - Cities state
+- [ ] `society_provider.dart` - Societies state
 - [ ] `user_provider.dart` - User profile state
 
 ### Screens to Update
-- [ ] Add authentication to Splash/City screens
-- [ ] Connect to Firebase for real data
-- [ ] Implement real duplicate checking
-- [ ] Add loading states
+- [ ] Create login/signup screen with email
+- [ ] Add email verification screen
+- [ ] Connect Splash to auth state
+- [ ] Connect City screen to real cities
+- [ ] Connect Society screen to real data
+- [ ] Update Add Society form
+- [ ] Add loading/error states
+
+### Testing Tasks
+- [ ] Test email signup works
+- [ ] Test email verification email arrives
+- [ ] Test duplicate prevention (UNIQUE email)
+- [ ] Test login with created account
+- [ ] Test duplicate society prevention
+- [ ] Test search functionality
+- [ ] Test on web (Chrome)
+- [ ] Test error handling
 
 ---
 
@@ -378,4 +423,5 @@ Next: Click Run ▶️
 *Last Updated: 2024*
 *Phase Status: Phase 1 - Complete ✅*
 *Overall Progress: 62% Complete*
+
 
