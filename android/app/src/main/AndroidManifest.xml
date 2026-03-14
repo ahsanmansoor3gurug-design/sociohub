@@ -7,10 +7,10 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- CRITICAL: AdMob App ID (Test ID) -->
+        <!-- CRITICAL: AdMob App ID (Updated from screenshot) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>
+            android:value="ca-app-pub-2480480406785116~4165420061"/>
 
         <activity
             android:name=".MainActivity"

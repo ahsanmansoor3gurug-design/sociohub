@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdService {
@@ -6,25 +8,29 @@ class AdService {
     await MobileAds.instance.initialize();
   }
 
-  // Google Test Ad Unit IDs
+  // Switches between Test IDs and Production IDs automatically
   static String get bannerAdUnitId {
-    if (Platform.isAndroid) {
-      return "ca-app-pub-3940256099942544/6300978111";
-    } else if (Platform.isIOS) {
-      return "ca-app-pub-3940256099942544/2934735716";
-    } else {
-      throw UnsupportedError("Unsupported platform");
+    if (kReleaseMode) {
+      return Platform.isAndroid 
+          ? dotenv.get('ANDROID_BANNER_ID', fallback: '') 
+          : dotenv.get('IOS_BANNER_ID', fallback: '');
     }
+    // Google Test Banner IDs
+    return Platform.isAndroid 
+        ? "ca-app-pub-3940256099942544/6300978111" 
+        : "ca-app-pub-3940256099942544/2934735716";
   }
 
   static String get interstitialAdUnitId {
-    if (Platform.isAndroid) {
-      return "ca-app-pub-3940256099942544/1033173712";
-    } else if (Platform.isIOS) {
-      return "ca-app-pub-3940256099942544/4411468910";
-    } else {
-      throw UnsupportedError("Unsupported platform");
+    if (kReleaseMode) {
+      return Platform.isAndroid 
+          ? dotenv.get('ANDROID_INTERSTITIAL_ID', fallback: '') 
+          : dotenv.get('IOS_INTERSTITIAL_ID', fallback: '');
     }
+    // Google Test Interstitial IDs
+    return Platform.isAndroid 
+        ? "ca-app-pub-3940256099942544/1033173712" 
+        : "ca-app-pub-3940256099942544/4411468910";
   }
 
   // Logic to load and show Interstitial Ad
@@ -45,7 +51,7 @@ class AdService {
           ad.show();
         },
         onAdFailedToLoad: (err) {
-          print('InterstitialAd failed to load: $err');
+          debugPrint('InterstitialAd failed to load: $err');
         },
       ),
     );
