@@ -17,6 +17,9 @@ dependencies:
   # State Management
   provider: ^6.0.5
   
+  # Supabase
+  supabase_flutter: ^2.0.0
+  
   # Firebase (will be added in Phase 2)
   # firebase_core: ^2.24.0
   # firebase_auth: ^4.15.0
@@ -31,6 +34,7 @@ dependencies:
   # Other Utilities
   intl: ^0.19.0
   uuid: ^4.0.0
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -42,7 +46,8 @@ flutter:
   uses-material-design: true
 
   # Uncomment and add assets if needed
-  # assets:
+  assets:
+    - .env
   #   - assets/images/
   #   - assets/icons/
   
@@ -52,5 +57,3 @@ flutter:
   #       - asset: assets/fonts/CustomFont-Regular.ttf
   #       - asset: assets/fonts/CustomFont-Bold.ttf
   #         weight: 700
-
-

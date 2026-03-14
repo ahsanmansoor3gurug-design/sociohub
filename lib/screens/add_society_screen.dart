@@ -1,47 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+import '../services/supabase_service.dart';
+import '../auth/auth_service.dart';
+import '../models/society_model.dart';
+import '../utils/constants.dart';
 
 class AddSocietyScreen extends StatefulWidget {
+  final String cityId;
   final String cityName;
 
-  AddSocietyScreen({required this.cityName});
+  AddSocietyScreen({required this.cityId, required this.cityName});
 
   @override
   _AddSocietyScreenState createState() => _AddSocietyScreenState();
 }
 
 class _AddSocietyScreenState extends State<AddSocietyScreen> {
+  final SupabaseService _supabaseService = SupabaseService();
+  final AuthService _authService = AuthService();
   final TextEditingController societyNameController = TextEditingController();
   final TextEditingController areaController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  // Sample existing societies for duplicate checking
-  final List<String> existingSocieties = [
-    "DHA Phase 6",
-    "Bahria Town Karachi",
-    "Gulshan-e-Iqbal",
-    "North Nazimabad",
-  ];
+  List<Society> existingSocieties = [];
+  List<Society> suggestions = [];
+  bool isLoading = false;
 
-  List<String> suggestions = [];
+  @override
+  void initState() {
+    super.initState();
+    _fetchExistingSocieties();
+  }
 
-  void checkDuplicates(String query) {
+  Future<void> _fetchExistingSocieties() async {
+    final societies = await _supabaseService.getSocieties(widget.cityId);
     setState(() {
-      suggestions = existingSocieties
-          .where((society) => society.toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      existingSocieties = societies;
     });
   }
 
-  void addSociety() {
+  void checkDuplicates(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        suggestions = [];
+      } else {
+        suggestions = existingSocieties
+            .where((society) =>
+                society.name.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+
+  Future<void> addSociety() async {
     if (formKey.currentState!.validate()) {
+      setState(() => isLoading = true);
+      
       String societyName = societyNameController.text.trim();
       
       // Check exact match
       bool exactMatch = existingSocieties.any(
-        (society) => society.toLowerCase() == societyName.toLowerCase(),
+        (society) => society.name.toLowerCase() == societyName.toLowerCase(),
       );
 
       if (exactMatch) {
+        setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("This society already exists. Please select it from the list."),
@@ -51,22 +74,44 @@ class _AddSocietyScreenState extends State<AddSocietyScreen> {
         return;
       }
 
-      // If no exact match, show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Society request submitted for approval!"),
-          backgroundColor: Colors.green,
-        ),
+      final newSociety = Society(
+        id: const Uuid().v4(),
+        cityId: widget.cityId,
+        name: societyName,
+        area: areaController.text.trim(),
+        createdBy: _authService.currentUser?.id ?? 'anonymous',
+        status: AppConstants.STATUS_PENDING,
+        createdAt: DateTime.now(),
       );
 
-      // Clear form
-      societyNameController.clear();
-      areaController.clear();
-      suggestions.clear();
+      final success = await _supabaseService.addSociety(newSociety);
 
-      Future.delayed(Duration(seconds: 2), () {
-        Navigator.pop(context);
-      });
+      setState(() => isLoading = false);
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Society request submitted for approval!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Clear form
+        societyNameController.clear();
+        areaController.clear();
+        suggestions.clear();
+
+        Future.delayed(Duration(seconds: 2), () {
+          Navigator.pop(context);
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to submit request. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -175,7 +220,7 @@ class _AddSocietyScreenState extends State<AddSocietyScreen> {
                                 children: [
                                   Icon(Icons.check_circle, color: Colors.blue, size: 20),
                                   SizedBox(width: 8),
-                                  Text(suggestion),
+                                  Text(suggestion.name),
                                 ],
                               ),
                             ),
@@ -239,21 +284,23 @@ class _AddSocietyScreenState extends State<AddSocietyScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: addSociety,
+                  onPressed: isLoading ? null : addSociety,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green[700],
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(
-                    "Submit for Approval",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: isLoading
+                      ? CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          "Submit for Approval",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -263,4 +310,3 @@ class _AddSocietyScreenState extends State<AddSocietyScreen> {
     );
   }
 }
-

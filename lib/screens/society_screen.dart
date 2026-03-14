@@ -1,40 +1,40 @@
 import 'package:flutter/material.dart';
+import '../services/supabase_service.dart';
+import '../models/society_model.dart';
 import 'home_screen.dart';
 import 'add_society_screen.dart';
 
 class SocietyScreen extends StatefulWidget {
+  final String cityId;
   final String cityName;
 
-  SocietyScreen({required this.cityName});
+  SocietyScreen({required this.cityId, required this.cityName});
 
   @override
   _SocietyScreenState createState() => _SocietyScreenState();
 }
 
 class _SocietyScreenState extends State<SocietyScreen> {
-  // Sample societies - In real app, this will come from Firebase
-  final Map<String, List<String>> societiesByCity = {
-    "Karachi": ["DHA Phase 6", "Bahria Town Karachi", "Gulshan-e-Iqbal", "North Nazimabad"],
-    "Lahore": ["DHA Phase 5", "Bahria Town Lahore", "Garden Town", "Johar Town"],
-    "Islamabad": ["F-7", "F-8", "E-7", "I-8"],
-    "Rawalpindi": ["Pindi Bhattian", "Adiala Road", "Rawalpindi Cantonment"],
-    "Hyderabad": ["Latifabad", "Gulistan-e-Johar", "Hyderabad Cantonment"],
-    "Faisalabad": ["Millat Road", "Race Course Road", "Gulberg"],
-    "Multan": ["Cantonment", "Nawab Pur Road"],
-    "Peshawar": ["Peshawar Cantonment", "Hayatabad"],
-    "Quetta": ["Quetta City", "Satellite Town"],
-    "Sialkot": ["City Center", "New City"],
-  };
-
-  late List<String> societies;
-  late List<String> filteredSocieties;
+  final SupabaseService _supabaseService = SupabaseService();
+  List<Society> societies = [];
+  List<Society> filteredSocieties = [];
+  bool isLoading = true;
   TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    societies = societiesByCity[widget.cityName] ?? [];
-    filteredSocieties = societies;
+    _fetchSocieties();
+  }
+
+  Future<void> _fetchSocieties() async {
+    setState(() => isLoading = true);
+    final fetchedSocieties = await _supabaseService.getSocieties(widget.cityId);
+    setState(() {
+      societies = fetchedSocieties;
+      filteredSocieties = fetchedSocieties;
+      isLoading = false;
+    });
   }
 
   void filterSocieties(String query) {
@@ -43,7 +43,7 @@ class _SocietyScreenState extends State<SocietyScreen> {
         filteredSocieties = societies;
       } else {
         filteredSocieties = societies
-            .where((society) => society.toLowerCase().contains(query.toLowerCase()))
+            .where((society) => society.name.toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
     });
@@ -78,41 +78,45 @@ class _SocietyScreenState extends State<SocietyScreen> {
           ),
           // Societies List
           Expanded(
-            child: filteredSocieties.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.search_off, size: 50, color: Colors.grey),
-                        SizedBox(height: 10),
-                        Text("No society found"),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: filteredSocieties.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        child: ListTile(
-                          leading: Icon(Icons.home, color: Colors.green),
-                          title: Text(filteredSocieties[index]),
-                          trailing: Icon(Icons.arrow_forward),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => HomeScreen(
-                                  cityName: widget.cityName,
-                                  societyName: filteredSocieties[index],
-                                ),
-                              ),
-                            );
-                          },
+            child: isLoading
+                ? Center(child: CircularProgressIndicator())
+                : filteredSocieties.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.search_off, size: 50, color: Colors.grey),
+                            SizedBox(height: 10),
+                            Text("No society found"),
+                          ],
                         ),
-                      );
-                    },
-                  ),
+                      )
+                    : ListView.builder(
+                        itemCount: filteredSocieties.length,
+                        itemBuilder: (context, index) {
+                          final society = filteredSocieties[index];
+                          return Card(
+                            margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            child: ListTile(
+                              leading: Icon(Icons.home, color: Colors.green),
+                              title: Text(society.name),
+                              subtitle: society.area != null ? Text(society.area!) : null,
+                              trailing: Icon(Icons.arrow_forward),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => HomeScreen(
+                                      cityName: widget.cityName,
+                                      societyName: society.name,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),
@@ -121,9 +125,12 @@ class _SocietyScreenState extends State<SocietyScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddSocietyScreen(cityName: widget.cityName),
+              builder: (context) => AddSocietyScreen(
+                cityId: widget.cityId,
+                cityName: widget.cityName,
+              ),
             ),
-          );
+          ).then((_) => _fetchSocieties()); // Refresh after adding
         },
         backgroundColor: Colors.green[700],
         child: Icon(Icons.add),
@@ -131,4 +138,3 @@ class _SocietyScreenState extends State<SocietyScreen> {
     );
   }
 }
-

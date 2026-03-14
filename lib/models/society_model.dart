@@ -1,46 +1,43 @@
 class Society {
-  final String societyId;
+  final String id;
   final String cityId;
-  final String societyName;
+  final String name;
   final String? area;
   final String createdBy;
-  final String status; // pending, approved, rejected
+  final String status;
   final DateTime createdAt;
 
   Society({
-    required this.societyId,
+    required this.id,
     required this.cityId,
-    required this.societyName,
+    required this.name,
     this.area,
     required this.createdBy,
     required this.status,
     required this.createdAt,
   });
 
-  // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
-      'societyId': societyId,
-      'cityId': cityId,
-      'societyName': societyName,
+      'id': id,
+      'city_id': cityId,
+      'name': name,
       'area': area,
-      'createdBy': createdBy,
+      'created_by': createdBy,
       'status': status,
-      'createdAt': createdAt.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
-  // Create from JSON
   factory Society.fromJson(Map<String, dynamic> json) {
     return Society(
-      societyId: json['societyId'],
-      cityId: json['cityId'],
-      societyName: json['societyName'],
+      id: json['id'],
+      cityId: json['city_id'],
+      name: json['name'],
       area: json['area'],
-      createdBy: json['createdBy'],
+      createdBy: json['created_by'],
       status: json['status'],
-      createdAt: DateTime.parse(json['createdAt']),
+      createdAt: DateTime.parse(json['created_at']),
     );
   }
 }
-

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../auth/auth_service.dart';
+import 'login_screen.dart';
 import 'city_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -7,15 +9,25 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final AuthService _authService = AuthService();
+
   @override
   void initState() {
     super.initState();
 
-    Future.delayed(Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => CityScreen()),
-      );
+    Future.delayed(const Duration(seconds: 3), () {
+      final user = _authService.currentUser;
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CityScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      }
     });
   }
 
@@ -34,9 +46,9 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.home_work, size: 80, color: Colors.white),
-              SizedBox(height: 20),
-              Text(
+              const Icon(Icons.home_work, size: 80, color: Colors.white),
+              const SizedBox(height: 20),
+              const Text(
                 "SocioHub",
                 style: TextStyle(
                   fontSize: 36,
@@ -44,8 +56,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: 10),
-              Text(
+              const SizedBox(height: 10),
+              const Text(
                 "Connect Your Community",
                 style: TextStyle(
                   fontSize: 16,
@@ -59,4 +71,3 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
-
