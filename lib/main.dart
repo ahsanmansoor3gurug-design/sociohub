@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'ads/ad_service.dart';
 import 'supabase/supabase_initializer.dart';
 import 'screens/splash_screen.dart';
-import 'services/local_db_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Load Environment Variables
+  await dotenv.load(fileName: ".env");
+
   // Initialize Services
   await SupabaseInitializer.initialize();
   await AdService.initialize();
-  
-  // Initialize SQLite Database
-  await LocalDatabaseService.instance.database;
 
   runApp(const SocioHubApp());
 }

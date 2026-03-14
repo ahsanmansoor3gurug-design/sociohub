@@ -7,8 +7,8 @@ class SupabaseInitializer {
 
   static Future<void> initialize() async {
     try {
-      const String url = SupabaseConfig.url;
-      const String anonKey = SupabaseConfig.anonKey;
+      final String url = SupabaseConfig.url;
+      final String anonKey = SupabaseConfig.anonKey;
 
       if (url != 'https://your-project-id.supabase.co') {
         await Supabase.initialize(
