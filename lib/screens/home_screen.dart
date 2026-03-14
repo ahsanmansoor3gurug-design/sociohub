@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../ads/banner_ad_widget.dart';
+import 'emergency_contacts_screen.dart';
 
 class HomeScreen extends StatelessWidget {
+  final String societyId = "s1"; // Fixed ID for demo, should come from previous screen
   final String cityName;
   final String societyName;
 
@@ -33,25 +35,34 @@ class HomeScreen extends StatelessWidget {
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
               children: [
-                menuCard(context, "🕌 Masjid\nTimings", Colors.blue),
-                menuCard(context, "🍽️ Restaurants", Colors.orange),
-                menuCard(context, "🔧 Community\nServices", Colors.purple),
-                menuCard(context, "📞 Emergency\nContacts", Colors.red),
-                menuCard(context, "📍 Society\nMap", Colors.teal),
-                menuCard(context, "📢 Announcements", Colors.indigo),
+                menuCard(context, "🕌 Masjid\nTimings", Colors.blue, null),
+                menuCard(context, "🍽️ Restaurants", Colors.orange, null),
+                menuCard(context, "🔧 Community\nServices", Colors.purple, null),
+                menuCard(context, "📞 Emergency\nContacts", Colors.red, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EmergencyContactsScreen(
+                        societyId: societyId,
+                        societyName: societyName,
+                      ),
+                    ),
+                  );
+                }),
+                menuCard(context, "📍 Society\nMap", Colors.teal, null),
+                menuCard(context, "📢 Announcements", Colors.indigo, null),
               ],
             ),
           ),
-          // Ad banner widget called from separate file
-          SafeArea(child: BannerAdWidget()),
+          const BannerAdWidget(),
         ],
       ),
     );
   }
 
-  Widget menuCard(BuildContext context, String title, Color color) {
+  Widget menuCard(BuildContext context, String title, Color color, VoidCallback? onTap) {
     return GestureDetector(
-      onTap: () {
+      onTap: onTap ?? () {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("$title - Coming Soon!"),

@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/city_model.dart';
 import '../models/society_model.dart';
+import '../models/emergency_contact_model.dart';
 
 class LocalDatabaseService {
   static final LocalDatabaseService instance = LocalDatabaseService._init();
@@ -21,13 +22,13 @@ class LocalDatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // Incremented version to add new table
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
   }
 
   Future _createDB(Database db, int version) async {
-    // Cities Table
     await db.execute('''
       CREATE TABLE cities(
         id TEXT PRIMARY KEY,
@@ -35,7 +36,6 @@ class LocalDatabaseService {
       )
     ''');
 
-    // Societies Table
     await db.execute('''
       CREATE TABLE societies(
         id TEXT PRIMARY KEY,
@@ -45,6 +45,30 @@ class LocalDatabaseService {
         FOREIGN KEY (city_id) REFERENCES cities (id) ON DELETE CASCADE
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE emergency_contacts(
+        id TEXT PRIMARY KEY,
+        society_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        phone_number TEXT NOT NULL,
+        category TEXT NOT NULL
+      )
+    ''');
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE emergency_contacts(
+          id TEXT PRIMARY KEY,
+          society_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          phone_number TEXT NOT NULL,
+          category TEXT NOT NULL
+        )
+      ''');
+    }
   }
 
   // City Operations
@@ -81,6 +105,26 @@ class LocalDatabaseService {
       whereArgs: [cityId],
     );
     return result.map((json) => Society.fromJson(json)).toList();
+  }
+
+  // Emergency Contact Operations
+  Future<void> saveEmergencyContacts(List<EmergencyContact> contacts) async {
+    final db = await instance.database;
+    final batch = db.batch();
+    for (var contact in contacts) {
+      batch.insert('emergency_contacts', contact.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  Future<List<EmergencyContact>> getEmergencyContacts(String societyId) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'emergency_contacts',
+      where: 'society_id = ?',
+      whereArgs: [societyId],
+    );
+    return result.map((json) => EmergencyContact.fromJson(json)).toList();
   }
 
   Future<void> close() async {

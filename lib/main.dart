@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'ads/ad_service.dart';
 import 'supabase/supabase_initializer.dart';
 import 'screens/splash_screen.dart';
+import 'services/local_db_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,6 +10,9 @@ Future<void> main() async {
   // Initialize Services
   await SupabaseInitializer.initialize();
   await AdService.initialize();
+  
+  // Initialize SQLite Database
+  await LocalDatabaseService.instance.database;
 
   runApp(const SocioHubApp());
 }
