@@ -20,6 +20,9 @@ dependencies:
   # Supabase
   supabase_flutter: ^2.0.0
   
+  # Ads
+  google_mobile_ads: ^5.1.0
+  
   # Firebase (will be added in Phase 2)
   # firebase_core: ^2.24.0
   # firebase_auth: ^4.15.0

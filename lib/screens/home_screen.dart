@@ -1,10 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../services/ad_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final String cityName;
   final String societyName;
 
   HomeScreen({required this.cityName, required this.societyName});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: AdService.bannerAdUnitId,
+      request: const AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _isAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          print('BannerAd failed to load: $err');
+          ad.dispose();
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,9 +54,9 @@ class HomeScreen extends StatelessWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(societyName),
+            Text(widget.societyName),
             Text(
-              cityName,
+              widget.cityName,
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
             ),
           ],
@@ -23,18 +64,32 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.green[700],
       ),
-      body: GridView.count(
-        crossAxisCount: 2,
-        padding: EdgeInsets.all(16),
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+      body: Column(
         children: [
-          menuCard(context, "🕌 Masjid\nTimings", Colors.blue),
-          menuCard(context, "🍽️ Restaurants", Colors.orange),
-          menuCard(context, "🔧 Community\nServices", Colors.purple),
-          menuCard(context, "📞 Emergency\nContacts", Colors.red),
-          menuCard(context, "📍 Society\nMap", Colors.teal),
-          menuCard(context, "📢 Announcements", Colors.indigo),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              padding: EdgeInsets.all(16),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              children: [
+                menuCard(context, "🕌 Masjid\nTimings", Colors.blue),
+                menuCard(context, "🍽️ Restaurants", Colors.orange),
+                menuCard(context, "🔧 Community\nServices", Colors.purple),
+                menuCard(context, "📞 Emergency\nContacts", Colors.red),
+                menuCard(context, "📍 Society\nMap", Colors.teal),
+                menuCard(context, "📢 Announcements", Colors.indigo),
+              ],
+            ),
+          ),
+          if (_isAdLoaded && _bannerAd != null)
+            SafeArea(
+              child: Container(
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
+            ),
         ],
       ),
     );
@@ -78,5 +133,3 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-
-

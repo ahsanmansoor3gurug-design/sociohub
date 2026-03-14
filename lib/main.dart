@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'supabase/supabase_initializer.dart';
 import 'screens/splash_screen.dart';
+import 'services/ad_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Supabase using the specialized initializer
+  // Initialize Services
   await SupabaseInitializer.initialize();
+  await AdService.initialize();
 
   runApp(const SocioHubApp());
 }
