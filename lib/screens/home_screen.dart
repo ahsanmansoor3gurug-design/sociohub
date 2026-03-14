@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../ads/banner_ad_widget.dart';
 import 'emergency_contacts_screen.dart';
+import 'restaurant_directory_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  final String societyId = "s1"; // Fixed ID for demo, should come from previous screen
+  final String societyId = "s1"; // MPCHS B-17 Demo ID
   final String cityName;
   final String societyName;
 
@@ -36,7 +37,17 @@ class HomeScreen extends StatelessWidget {
               crossAxisSpacing: 12,
               children: [
                 menuCard(context, "🕌 Masjid\nTimings", Colors.blue, null),
-                menuCard(context, "🍽️ Restaurants", Colors.orange, null),
+                menuCard(context, "🍽️ Restaurants", Colors.orange, () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RestaurantDirectoryScreen(
+                        societyId: societyId,
+                        societyName: societyName,
+                      ),
+                    ),
+                  );
+                }),
                 menuCard(context, "🔧 Community\nServices", Colors.purple, null),
                 menuCard(context, "📞 Emergency\nContacts", Colors.red, () {
                   Navigator.push(

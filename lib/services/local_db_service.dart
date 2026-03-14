@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 import '../models/city_model.dart';
 import '../models/society_model.dart';
 import '../models/emergency_contact_model.dart';
+import '../models/restaurant_model.dart';
 
 class LocalDatabaseService {
   static final LocalDatabaseService instance = LocalDatabaseService._init();
@@ -22,7 +23,7 @@ class LocalDatabaseService {
 
     return await openDatabase(
       path,
-      version: 2, // Incremented version to add new table
+      version: 3, // Incremented version to add restaurants table
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -55,6 +56,18 @@ class LocalDatabaseService {
         category TEXT NOT NULL
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE restaurants(
+        id TEXT PRIMARY KEY,
+        society_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        cuisine TEXT NOT NULL,
+        phone_number TEXT NOT NULL,
+        address TEXT NOT NULL,
+        rating REAL NOT NULL
+      )
+    ''');
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -66,6 +79,19 @@ class LocalDatabaseService {
           name TEXT NOT NULL,
           phone_number TEXT NOT NULL,
           category TEXT NOT NULL
+        )
+      ''');
+    }
+    if (oldVersion < 3) {
+      await db.execute('''
+        CREATE TABLE restaurants(
+          id TEXT PRIMARY KEY,
+          society_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          cuisine TEXT NOT NULL,
+          phone_number TEXT NOT NULL,
+          address TEXT NOT NULL,
+          rating REAL NOT NULL
         )
       ''');
     }
@@ -125,6 +151,26 @@ class LocalDatabaseService {
       whereArgs: [societyId],
     );
     return result.map((json) => EmergencyContact.fromJson(json)).toList();
+  }
+
+  // Restaurant Operations
+  Future<void> saveRestaurants(List<Restaurant> restaurants) async {
+    final db = await instance.database;
+    final batch = db.batch();
+    for (var restaurant in restaurants) {
+      batch.insert('restaurants', restaurant.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  Future<List<Restaurant>> getRestaurants(String societyId) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'restaurants',
+      where: 'society_id = ?',
+      whereArgs: [societyId],
+    );
+    return result.map((json) => Restaurant.fromJson(json)).toList();
   }
 
   Future<void> close() async {
