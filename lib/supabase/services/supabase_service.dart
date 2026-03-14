@@ -5,7 +5,7 @@ import '../../models/society_model.dart';
 import '../../utils/constants.dart';
 import '../supabase_client.dart';
 import '../supabase_initializer.dart';
-
+import '../../services/local_db_service.dart';
 
 class SupabaseService {
   // Singleton pattern for the service itself
@@ -49,39 +49,59 @@ class SupabaseService {
 
   // --- City Operations ---
   Future<List<City>> getCities() async {
-    if (isDemoMode || _client == null) {
-      await Future.delayed(const Duration(milliseconds: 500)); // Simulating network
-      return _mockCities;
+    // 1. Try Online
+    if (!isDemoMode && _client != null) {
+      try {
+        final response = await _client!
+            .from('cities')
+            .select()
+            .order('name', ascending: true);
+        
+        final cities = (response as List).map((json) => City.fromJson(json)).toList();
+        
+        // Save to Local DB for offline use
+        await LocalDatabaseService.instance.saveCities(cities);
+        return cities;
+      } catch (e) {
+        print("Online fetch failed, trying local storage...");
+      }
     }
 
-    try {
-      final response = await _client!
-          .from('cities')
-          .select()
-          .order('name', ascending: true);
-      return (response as List).map((json) => City.fromJson(json)).toList();
-    } catch (e) {
-      return _mockCities; // Fallback
-    }
+    // 2. Try Local SQLite
+    final localCities = await LocalDatabaseService.instance.getCities();
+    if (localCities.isNotEmpty) return localCities;
+
+    // 3. Last Resort: Mock Data
+    return _mockCities;
   }
 
   // --- Society Operations ---
   Future<List<Society>> getSocieties(String cityId) async {
-    if (isDemoMode || _client == null) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      return _mockSocieties.where((s) => s.cityId == cityId).toList();
+    // 1. Try Online
+    if (!isDemoMode && _client != null) {
+      try {
+        final response = await _client!
+            .from('societies')
+            .select()
+            .eq('city_id', cityId)
+            .eq('status', AppConstants.STATUS_APPROVED);
+        
+        final societies = (response as List).map((json) => Society.fromJson(json)).toList();
+        
+        // Save to Local DB for offline use
+        await LocalDatabaseService.instance.saveSocieties(societies);
+        return societies;
+      } catch (e) {
+        print("Online fetch failed, trying local storage...");
+      }
     }
 
-    try {
-      final response = await _client!
-          .from('societies')
-          .select()
-          .eq('city_id', cityId)
-          .eq('status', AppConstants.STATUS_APPROVED);
-      return (response as List).map((json) => Society.fromJson(json)).toList();
-    } catch (e) {
-      return _mockSocieties.where((s) => s.cityId == cityId).toList();
-    }
+    // 2. Try Local SQLite
+    final localSocieties = await LocalDatabaseService.instance.getSocieties(cityId);
+    if (localSocieties.isNotEmpty) return localSocieties;
+
+    // 3. Last Resort: Mock Data
+    return _mockSocieties.where((s) => s.cityId == cityId).toList();
   }
 
   Future<bool> addSociety(Society society) async {
@@ -89,6 +109,8 @@ class SupabaseService {
 
     try {
       await _client!.from('societies').insert(society.toJson());
+      // Also save locally immediately
+      await LocalDatabaseService.instance.saveSocieties([society]);
       return true;
     } catch (e) {
       return false;

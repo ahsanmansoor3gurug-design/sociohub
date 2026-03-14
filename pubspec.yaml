@@ -22,6 +22,10 @@ dependencies:
   
   # Ads
   google_mobile_ads: ^5.1.0
+
+  # Local Database
+  sqflite: ^2.3.0
+  path: ^1.8.3
   
   # Firebase (will be added in Phase 2)
   # firebase_core: ^2.24.0
