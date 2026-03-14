@@ -1,9 +1,11 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/city_model.dart';
-import '../models/society_model.dart';
-import '../utils/constants.dart';
-import '../supabase/supabase_initializer.dart';
-import '../supabase/supabase_client.dart';
+
+import '../../models/city_model.dart';
+import '../../models/society_model.dart';
+import '../../utils/constants.dart';
+import '../supabase_client.dart';
+import '../supabase_initializer.dart';
+
 
 class SupabaseService {
   // Singleton pattern for the service itself

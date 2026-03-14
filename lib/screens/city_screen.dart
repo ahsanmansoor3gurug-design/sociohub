@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/supabase_service.dart';
 import '../models/city_model.dart';
+import '../supabase/services/supabase_service.dart';
 import 'society_screen.dart';
 
 class CityScreen extends StatefulWidget {

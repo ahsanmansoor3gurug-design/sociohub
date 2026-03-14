@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/supabase_service.dart';
 import '../models/society_model.dart';
+import '../supabase/services/supabase_service.dart';
 import 'home_screen.dart';
 import 'add_society_screen.dart';
 

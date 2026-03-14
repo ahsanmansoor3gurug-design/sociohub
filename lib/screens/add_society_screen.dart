@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import '../services/supabase_service.dart';
 import '../auth/auth_service.dart';
 import '../models/society_model.dart';
+import '../supabase/services/supabase_service.dart';
 import '../utils/constants.dart';
 
 class AddSocietyScreen extends StatefulWidget {
